@@ -9,38 +9,149 @@ import XCTest
 import RouteStringsLibraryMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "RouteStrings": RouteStringsMacro.self,
 ]
 #endif
 
 final class RouteStringsLibraryTests: XCTestCase {
-    func testMacro() throws {
+    
+    func testEmpty() throws {
         #if canImport(RouteStringsLibraryMacros)
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @RouteStrings
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: RoutesBuilder) throws {
+                }
+            }
             """,
-            expandedSource: """
-            (a + b, "a + b")
+            expandedSource:
+            """
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: RoutesBuilder) throws {
+                }
+            }
             """,
-            macros: testMacros
-        )
+            macros: testMacros)
         #else
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif
     }
-
-    func testMacroWithStringLiteral() throws {
+    
+    func testNoArgumentsProducesFunctionsWithOnlyQuery() throws {
         #if canImport(RouteStringsLibraryMacros)
         assertMacroExpansion(
             #"""
-            #stringify("Hello, \(name)")
+            @RouteStrings
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: RoutesBuilder) throws {
+                    sessionRoute.get("order", use: getOrders)
+                }
+            }
             """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
+            expandedSource:
+            #"""
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: RoutesBuilder) throws {
+                    sessionRoute.get("order", use: getOrders)
+                }
+
+                static func getOrders(query: [String : String?]? = nil) -> String? {
+
+                    var path = ""
+
+                    path += "/order"
+
+                    var urlComponents = URLComponents()
+
+                    urlComponents.path = path
+
+                    urlComponents.queryItems = query?.map { key, value in
+                        URLQueryItem(name: key, value: value)
+                    }
+
+                    return urlComponents.string
+                }
+            }
             """#,
-            macros: testMacros
-        )
+            macros: testMacros)
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
+    func testRouteStrings() throws {
+        #if canImport(RouteStringsLibraryMacros)
+        assertMacroExpansion(
+            #"""
+            @RouteStrings
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: RoutesBuilder) throws {
+                    sessionRoute.get("order", ":id", use: getOrder)
+                    routes.post("retailer", ":retailerPublicId", "order", ":id", use: postOrder)
+                }
+            }
+            """#,
+            expandedSource:
+            #"""
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: RoutesBuilder) throws {
+                    sessionRoute.get("order", ":id", use: getOrder)
+                    routes.post("retailer", ":retailerPublicId", "order", ":id", use: postOrder)
+                }
+
+                static func getOrder(id: String, query: [String : String?]? = nil) -> String? {
+
+                    var path = ""
+
+                    path += "/order"
+                    guard let percentEncodedid = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+                        return nil
+                    }
+
+                    path += "/\(percentEncodedid)"
+
+                    var urlComponents = URLComponents()
+
+                    urlComponents.path = path
+
+                    urlComponents.queryItems = query?.map { key, value in
+                        URLQueryItem(name: key, value: value)
+                    }
+
+                    return urlComponents.string
+                }
+
+                static func postOrder(retailerPublicId: String, id: String, query: [String : String?]? = nil) -> String? {
+
+                    var path = ""
+
+                path += "/retailer"
+                guard let percentEncodedretailerPublicId = retailerPublicId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+                    return nil
+                }
+
+                path += "/\(percentEncodedretailerPublicId)"
+                path += "/order"
+                guard let percentEncodedid = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+                    return nil
+                }
+
+                path += "/\(percentEncodedid)"
+
+                    var urlComponents = URLComponents()
+                    
+                    urlComponents.path = path
+                    
+                    urlComponents.queryItems = query?.map { key, value in
+                        URLQueryItem(name: key, value: value)
+                    }
+                    
+                    return urlComponents.string
+                }
+            }
+            """#,
+            macros: testMacros)
         #else
         throw XCTSkip("macros are only supported when running tests for the host platform")
         #endif

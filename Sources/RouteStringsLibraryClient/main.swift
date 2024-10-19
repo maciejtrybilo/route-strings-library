@@ -1,8 +1,33 @@
 import RouteStringsLibrary
+import Foundation
 
-let a = 17
-let b = 25
+// Dummy Vapor types //
+struct RoutesBuilder {
+    func get(_: String..., use: () -> Void) {}
+}
 
-let (result, code) = #stringify(a + b)
+protocol RouteCollection {
+    func boot(routes: RoutesBuilder) throws
+}
+// Dummy Vapor types //
 
-print("The value \(result) was produced by the code \"\(code)\"")
+@RouteStrings
+struct Controller: RouteCollection {
+    
+    func boot(routes: RoutesBuilder) throws {
+        routes.get("retailer", ":retailerPublicId", "order", ":orderId", use: getOrder)
+        routes.get("retailer", ":retailerPublicId", "order", use: getOrders)
+    }
+    
+    // Dummy route handlers
+    func getOrder() {}
+    func getOrders() {}
+}
+
+print(Controller.getOrders(retailerPublicId: "dsjd809sd",
+                           query: ["search" : "meow",
+                                   "per" : "100",
+                                   "page" : "1"]) ?? "<wut>")
+
+print(Controller.getOrder(retailerPublicId: "dsjd809sd",
+                          orderId: "12345") ?? "<wut>")
