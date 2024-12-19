@@ -114,11 +114,7 @@ public struct RouteStringsMacro: MemberMacro {
                 
                 code +=
                 #"""
-                guard let percentEncoded\#(cleanedElement) = \#(cleanedElement).addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-                    return nil
-                }
-                
-                path += "/\(percentEncoded\#(cleanedElement))"\#n
+                path += "/\(\#(cleanedElement))"\#n
                 """#
                 
             } else if element.hasPrefix("*") {

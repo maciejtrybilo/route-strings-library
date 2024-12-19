@@ -105,11 +105,8 @@ final class RouteStringsLibraryTests: XCTestCase {
                     var path = ""
 
                     path += "/order"
-                    guard let percentEncodedid = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-                        return nil
-                    }
-
-                    path += "/\(percentEncodedid)"
+            
+                    path += "/\(id)"
 
                     var urlComponents = URLComponents()
 
@@ -127,17 +124,9 @@ final class RouteStringsLibraryTests: XCTestCase {
                     var path = ""
 
                 path += "/retailer"
-                guard let percentEncodedretailerPublicId = retailerPublicId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-                    return nil
-                }
-
-                path += "/\(percentEncodedretailerPublicId)"
+                path += "/\(retailerPublicId)"
                 path += "/order"
-                guard let percentEncodedid = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-                    return nil
-                }
-
-                path += "/\(percentEncodedid)"
+                path += "/\(id)"
 
                     var urlComponents = URLComponents()
                     
