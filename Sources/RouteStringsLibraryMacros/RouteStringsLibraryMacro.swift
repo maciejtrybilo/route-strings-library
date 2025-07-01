@@ -152,10 +152,12 @@ public struct RouteStringsMacro: MemberMacro {
                 return false
             }
             
-            return member.trimmedDescription
+            let trimmed = member.trimmedDescription
                 .replacingOccurrences(of: "\n", with: "")
                 .replacingOccurrences(of: " ", with: "")
-                .hasPrefix("funcboot(routes:RoutesBuilder)throws{")
+            
+            return trimmed.hasPrefix("funcboot(routes:RoutesBuilder)throws{") ||
+            trimmed.hasPrefix("funcboot(routes:anyRoutesBuilder)throws{")
             
         }) else {
             throw RouteStringsMacroError.bootFunctionMissing

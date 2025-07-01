@@ -38,6 +38,29 @@ final class RouteStringsLibraryTests: XCTestCase {
         #endif
     }
     
+    func testEmptyWithExistentialAny() throws {
+        #if canImport(RouteStringsLibraryMacros)
+        assertMacroExpansion(
+            """
+            @RouteStrings
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: any RoutesBuilder) throws {
+                }
+            }
+            """,
+            expandedSource:
+            """
+            struct Controller: Codable, RouteCollection {
+                func boot(routes: any RoutesBuilder) throws {
+                }
+            }
+            """,
+            macros: testMacros)
+        #else
+        throw XCTSkip("macros are only supported when running tests for the host platform")
+        #endif
+    }
+    
     func testNoArgumentsProducesFunctionsWithOnlyQuery() throws {
         #if canImport(RouteStringsLibraryMacros)
         assertMacroExpansion(
@@ -105,7 +128,6 @@ final class RouteStringsLibraryTests: XCTestCase {
                     var path = ""
 
                     path += "/order"
-            
                     path += "/\(id)"
 
                     var urlComponents = URLComponents()
